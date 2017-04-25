@@ -9,11 +9,10 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='hamutils',
-    version='0.1.0',
+    version='0.1.1',
     description='Amateur radio utils library',
     long_description=long_description,
     url='https://github.com/sq8kfh/hamutils',
-    download_url = 'https://github.com/sq8kfh/hamutils/archive/v0.1.0.tar.gz',
     author='SQ8KFH',
     author_email='sq8kfh+pypi@gmail.com',
     license='MIT',
@@ -28,6 +27,7 @@ setup(
     ],
     keywords='ham qrz space_weather',
     packages=find_packages(),
+    python_requires='>=3.4',
     install_requires=[],
 
     # $ pip install -e .[dev,test]
