@@ -2,4 +2,4 @@
 
 __all__ = ['qrz', 'space_weather']
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"

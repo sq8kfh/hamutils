@@ -9,15 +9,16 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='hamutils',
-    version='0.0.0',
+    version='0.1.0',
     description='Amateur radio utils library',
     long_description=long_description,
     url='https://github.com/sq8kfh/hamutils',
+    download_url = 'https://github.com/sq8kfh/hamutils/archive/0.1.0.tar.gz',
     author='SQ8KFH',
-    author_email='sq8kfh@gmail.com',
+    author_email='sq8kfh+pypi@gmail.com',
     license='MIT',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Topic :: Communications :: Ham Radio',
         'Topic :: Software Development :: Libraries :: Python Modules',
@@ -25,14 +26,14 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.4',
     ],
-    keywords='ham qrz',
+    keywords='ham qrz space_weather',
     packages=find_packages(),
     install_requires=[],
 
     # $ pip install -e .[dev,test]
-    extras_require={
-        'testing': ['pytest'],
-    },
+    # extras_require={
+    #    'testing': ['pytest'],
+    # },
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
