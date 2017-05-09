@@ -1,0 +1,2 @@
+class CabrilloWriter:
+    pass

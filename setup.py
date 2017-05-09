@@ -13,8 +13,9 @@ setup(
     description='Amateur radio utils library',
     long_description=long_description,
     url='https://github.com/sq8kfh/hamutils',
+    download_url = 'https://github.com/sq8kfh/hamutils/tarball/v0.1.1',
     author='SQ8KFH',
-    author_email='sq8kfh+pypi@gmail.com',
+    author_email='sq8kfh@gmail.com',
     license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -25,10 +26,12 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.4',
     ],
-    keywords='ham qrz space_weather',
+    keywords=['ham', 'qrz', 'space weather'],
     packages=find_packages(),
     python_requires='>=3.4',
-    install_requires=[],
+    install_requires=[
+        'unidecode',
+    ],
 
     # $ pip install -e .[dev,test]
     # extras_require={
