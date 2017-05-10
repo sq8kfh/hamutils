@@ -1,5 +1,5 @@
 import datetime
-from .common import ParseError, adif_field, convert_field
+from .common import ParseError, WriteError, adif_field, convert_field
 from unidecode import unidecode
 
 
@@ -127,14 +127,6 @@ class ADIReader:
                 c = self._flo.read(1)
 
 
-class WriteError(Exception):
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __str__(self):
-        return 'Write error: %s' % self.msg
-
-
 class ADIWriter:
     adif_ver = '3.0.5'
 
@@ -259,7 +251,7 @@ class ADIWriter:
         if data:
             data = str(data).replace('\r\n', '\n').replace('\n', '\r\n')
             dlen = len(data)
-            if type:
+            if data_type:
                 raw = '<%s:%d:%s>%s' % (name, dlen, data_type, data)
             else:
                 raw = '<%s:%d>%s' % (name, dlen, data)

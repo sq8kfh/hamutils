@@ -1,6 +1,7 @@
 import datetime
+from unidecode import unidecode
 from xml.dom import minidom, Node
-from .common import ParseError, convert_field, adif_utf_field
+from .common import ParseError, WriteError, convert_field, adif_utf_field, adif_rev_utf_field, adif_field
 
 
 class ADXReader:
@@ -70,4 +71,125 @@ class ADXReader:
             yield res
 
 class ADXWriter:
-    pass
+    adif_ver = '3.0.5'
+
+    def __init__(self, flo, program_id=None, program_version=None, compact=False):
+        self._flo = flo
+        self._doc = minidom.Document()
+        root = self._doc.createElement('ADX')
+        self._doc.appendChild(root)
+        header = self._doc.createElement('HEADER')
+
+        header.appendChild(self._create_node('ADIF_VER', self.adif_ver))
+        tmp_data = datetime.datetime.utcnow().strftime('%Y%m%d %H%M%S')
+        header.appendChild(self._create_node('CREATED_TIMESTAMP', tmp_data))
+
+        if program_id:
+            header.appendChild(self._create_node('PROGRAMID', program_id))
+            if program_version:
+                header.appendChild(self._create_node('PROGRAMVERSION', program_version))
+        else:
+            from hamutils import __version__ as hamutils_version
+            header.appendChild(self._create_node('PROGRAMID', 'hamutils'))
+            header.appendChild(self._create_node('PROGRAMVERSION', hamutils_version))
+
+        root.appendChild(header)
+        self._records = self._doc.createElement('RECORDS')
+        root.appendChild(self._records)
+        self._compact = compact
+
+    def add_qso(self, **kw):
+        record = self._doc.createElement('RECORD')
+        if 'datetime_on' in kw:
+            tmp = kw['datetime_on']
+            kw['qso_date'] = tmp.date()
+            kw['time_on'] = tmp.time()
+            del kw['datetime_on']
+        if 'datetime_off' in kw:
+            tmp = kw['datetime_off']
+            t_date = tmp.date()
+            if t_date != kw['qso_date']:
+                kw['qso_date_off'] = t_date
+            elif 'qso_date_off' in kw:
+                del kw['qso_date_off']
+            kw['time_off'] = tmp.time()
+            del kw['datetime_off']
+
+
+        if 'qso_date' in kw and kw['qso_date']:
+            self._create_field(record, 'qso_date', kw['qso_date'])
+            del kw['qso_date']
+        else:
+            raise WriteError('missing field: \'qso_date\'')
+
+        if 'time_on' in kw and kw['time_on']:
+            self._create_field(record, 'time_on', kw['time_on'])
+            del kw['time_on']
+        else:
+            raise WriteError('missing field: \'time_on\'')
+
+        if 'call' in kw and kw['call']:
+            self._create_field(record, 'call', kw['call'])
+            del kw['call']
+        else:
+            raise WriteError('missing field: \'call\'')
+
+        if 'band' in kw and kw['band']:
+            self._create_field(record, 'band', kw['band'])
+            del kw['band']
+        else:
+            raise WriteError('missing field: \'band\'')
+
+        if 'mode' in kw and kw['mode']:
+            self._create_field(record, 'mode', kw['mode'])
+            del kw['mode']
+        else:
+            raise WriteError('missing field: \'mode\'')
+
+        for field in kw:
+            self._create_field(record, field, kw[field])
+        self._records.appendChild(record)
+
+    def _create_node(self, name, data, data_type=None):
+        name = name.upper()
+        if name.startswith('APP_'):
+            app,prog,field = name.split('_')
+            el = self._doc.createElement('APP')
+            el.setAttribute('PROGRAMID', prog)
+            el.setAttribute('FIELDNAME', field)
+            if data_type:
+                el.setAttribute('TYPE', data_type)
+        else:
+            el = self._doc.createElement(name)
+        if data:
+            text = self._doc.createTextNode(data)
+            el.appendChild(text)
+        return el
+
+    def _create_field(self, record_node, field, data):
+        if data == None:
+            return
+        l_field = field.lower()
+        if l_field in adif_field:
+            if adif_field[l_field] == 'D':
+                tmp_data = data.strftime('%Y%m%d')
+            elif adif_field[l_field] == 'T':
+                tmp_data = data.strftime('%H%M%S')
+            else:
+                tmp_data = str(data)
+
+            if l_field in adif_rev_utf_field:
+                record_node.appendChild(self._create_node(adif_rev_utf_field[l_field], tmp_data))
+            record_node.appendChild(self._create_node(l_field, unidecode(tmp_data)))
+        elif l_field.startswith('app_'):
+            tmp_data = str(data)
+            record_node.appendChild(self._create_node(l_field, tmp_data))
+        else:
+            raise WriteError('unknown field: \'%s\'' % l_field)
+
+    def close(self):
+        if self._compact:
+            self._flo.write(self._doc.toxml(encoding='UTF-8'))
+        else:
+            self._flo.write(self._doc.toprettyxml(indent="  ", encoding='UTF-8'))
+        self._flo.close()

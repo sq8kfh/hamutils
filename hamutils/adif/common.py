@@ -174,6 +174,9 @@ adif_utf_field = {
     'sig_info_intl': 'sig_info'
 }
 
+adif_rev_utf_field = {v: k for k,v in adif_utf_field.items()}
+
+
 def convert_field_date(date_type, data):
     if date_type == 'B':
         return bool(data)
@@ -188,6 +191,7 @@ def convert_field_date(date_type, data):
     else:
         return data
 
+
 def convert_field(name, data, date_type):
     if date_type:
         return convert_field_date(date_type, data)
@@ -196,6 +200,7 @@ def convert_field(name, data, date_type):
     else:
         return convert_field_date('S', data)
 
+
 class ParseError(Exception):
     def __init__(self, line, msg):
         self.line = line
@@ -203,3 +208,11 @@ class ParseError(Exception):
 
     def __str__(self):
         return 'Parse error: %s, in line: %d' % (self.msg, self.line)
+
+
+class WriteError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return 'Write error: %s' % self.msg
