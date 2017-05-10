@@ -1,15 +1,6 @@
 import datetime
-from .common import adif_field
+from .common import ParseError, adif_field, convert_field
 from unidecode import unidecode
-
-
-class ParseError(Exception):
-    def __init__(self, line, msg):
-        self.line = line
-        self.msg = msg
-
-    def __str__(self):
-        return 'Parse error: %s, in line: %d' % (self.msg, self.line)
 
 
 class ParseErrorIncData(ParseError):
@@ -36,12 +27,7 @@ class ADIReader:
         res = {}
         while tmp[0] != 'eor':
             try:
-                if tmp[3]:
-                    res[tmp[0]] = self._convert_field_date(tmp[3], tmp[1])
-                elif tmp[0] in adif_field:
-                    res[tmp[0]] = self._convert_field_date(adif_field[tmp[0]], tmp[1])
-                else:
-                    res[tmp[0]] = self._convert_field_date('S', tmp[1])
+                res[tmp[0]] = convert_field(tmp[0], tmp[1], tmp[3])
             except Exception:
                 raise ParseError(self._line_num, 'invalid value for \'%s\'' % tmp[0])
 
@@ -69,18 +55,6 @@ class ADIReader:
         del res['qso_date']
         return res
 
-    def _convert_field_date(self, type, data):
-        if type == 'B':
-            return bool(data)
-        elif type == 'N':
-            return float(data)
-        elif type == 'D':
-            return datetime.date(int(data[0:4]), int(data[4:6]), int(data[6:8]))
-        elif type == 'T':
-            return datetime.time(int(data[0:2]), int(data[2:4]), int(data[4:6]))
-        else:
-            return data
-
     def _readfield(self):
         c = self._flo.read(1)
         state = 'n'
@@ -100,15 +74,15 @@ class ADIReader:
                 if c == ':':
                     f_name = f_name.lower()
                     if len(f_name) > 0:
-                       state = 'l'
+                        state = 'l'
                     else:
-                        raise  ParseError(self._line_num, 'missing field name')
+                        raise ParseError(self._line_num, 'missing field name')
                 elif c == '>':
                     f_name = f_name.lower()
                     if len(f_name) > 0:
-                       state = 'c'
+                        state = 'c'
                     else:
-                        raise  ParseError(self._line_num, 'missing field name')
+                        raise ParseError(self._line_num, 'missing field name')
                 else:
                     f_name += c
             elif state == 'l':
@@ -146,7 +120,7 @@ class ADIReader:
                     state = 'c'
 
             if state == 'c':
-                return (f_name, f_data, f_len, f_type)
+                return f_name, f_data, f_len, f_type
             else:
                 if c == '\n':
                     self._line_num += 1
@@ -223,17 +197,17 @@ class ADIWriter:
             l_field = field.lower()
             if l_field in adif_field:
                 if adif_field[l_field] == 'D':
-                    tmp = data.strftime('%Y%m%d')
+                    tmp_data = data.strftime('%Y%m%d')
                 elif adif_field[l_field] == 'T':
-                    tmp = data.strftime('%H%M%S')
+                    tmp_data = data.strftime('%H%M%S')
                 else:
-                    tmp = str(data)
-                self._flo.write(self._write_field(l_field, tmp))
+                    tmp_data = str(data)
+                self._flo.write(self._write_field(l_field, tmp_data))
                 if not self._compact:
                     self._flo.write(self._newline)
             elif l_field.startswith('app_'):
-                tmp = str(data)
-                self._flo.write(self._write_field(l_field, tmp))
+                tmp_data = str(data)
+                self._flo.write(self._write_field(l_field, tmp_data))
                 if not self._compact:
                     self._flo.write(self._newline)
             else:
@@ -279,13 +253,14 @@ class ADIWriter:
             self.write_head()
         self._flo.close()
 
-    def _write_field(self, name, data, type=None):
+    @staticmethod
+    def _write_field(name, data, data_type=None):
         name = name.lower()
         if data:
             data = str(data).replace('\r\n', '\n').replace('\n', '\r\n')
             dlen = len(data)
             if type:
-                raw = '<%s:%d:%s>%s' % (name, dlen, type, data)
+                raw = '<%s:%d:%s>%s' % (name, dlen, data_type, data)
             else:
                 raw = '<%s:%d>%s' % (name, dlen, data)
         else:

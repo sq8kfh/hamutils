@@ -1,3 +1,6 @@
+import datetime
+
+
 adif_field = {
     'address': 'M',
     'address_intl': 'G',
@@ -149,3 +152,54 @@ adif_field = {
     'vucc_grids': 'S',
     'web': 'S'
 }
+
+adif_utf_field = {
+    'address_intl': 'address',
+    'comment_intl': 'comment',
+    'country_intl': 'country',
+    'my_city_intl': 'my_city',
+    'my_country_intl': 'my_country',
+    'my_name_intl': 'my_name',
+    'my_postal_code_intl': 'my_postal_code',
+    'my_rig_intl': 'my_rig',
+    'my_sig_intl': 'my_sig',
+    'my_sig_info_intl': 'my_sig_info',
+    'my_street_intl': 'my_street',
+    'name_intl': 'name',
+    'notes_intl': 'notes',
+    'qslmsg_intl': 'qslmsg',
+    'qth_intl': 'qth',
+    'rig_intl': 'rig',
+    'sig_intl': 'sig',
+    'sig_info_intl': 'sig_info'
+}
+
+def convert_field_date(date_type, data):
+    if date_type == 'B':
+        return bool(data)
+    elif date_type == 'N':
+        return float(data)
+    elif date_type == 'D':
+        return datetime.date(int(data[0:4]), int(data[4:6]), int(data[6:8]))
+    elif date_type == 'T':
+        if len(data) == 6:
+            return datetime.time(int(data[0:2]), int(data[2:4]), int(data[4:6]))
+        return datetime.time(int(data[0:2]), int(data[2:4]))
+    else:
+        return data
+
+def convert_field(name, data, date_type):
+    if date_type:
+        return convert_field_date(date_type, data)
+    elif name in adif_field:
+        return convert_field_date(adif_field[name], data)
+    else:
+        return convert_field_date('S', data)
+
+class ParseError(Exception):
+    def __init__(self, line, msg):
+        self.line = line
+        self.msg = msg
+
+    def __str__(self):
+        return 'Parse error: %s, in line: %d' % (self.msg, self.line)
