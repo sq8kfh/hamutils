@@ -1,20 +1,7 @@
 import datetime
 from .common import adif_field
-"""
 from unidecode import unidecode
-unidecode(u'北京')
 
-
->>> import io
->>> buf = io.StringIO(msg)
->>> buf.readline()
-'Bob Smith\n'
->>> buf.readline()
-'Jane Doe\n'
->>> len(buf.read())
-44
-
-"""
 
 class ParseError(Exception):
     def __init__(self, line, msg):
@@ -56,7 +43,7 @@ class ADIReader:
                 else:
                     res[tmp[0]] = self._convert_field_date('S', tmp[1])
             except Exception:
-                raise ParseError(self._line_num, 'invalid value for %s' % tmp[0])
+                raise ParseError(self._line_num, 'invalid value for \'%s\'' % tmp[0])
 
             tmp = self._readfield()
         if 'qso_date' not in res:
@@ -166,5 +153,142 @@ class ADIReader:
                 c = self._flo.read(1)
 
 
+class WriteError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return 'Write error: %s' % self.msg
+
+
 class ADIWriter:
-    pass
+    adif_ver = '3.0.5'
+
+    def __init__(self, flo, program_id=None, program_version=None, compact=False):
+        self._flo = flo
+        if program_id:
+            self.program_id = program_id
+            if program_version:
+                self.program_version = program_version
+            else:
+                self.program_version = None
+        else:
+            from hamutils import __version__ as hamutils_version
+            self.program_version = hamutils_version
+            self.program_id = 'hamutils'
+        self._compact = compact
+        self._head_writed = False
+        self._newline = '\r\n'.encode('ascii')
+
+    def write_head(self):
+        self._flo.write(self._write_field('adif_ver', self.adif_ver))
+        self._flo.write(self._newline)
+        tmp_data = datetime.datetime.utcnow().strftime('%Y%m%d %H%M%S')
+        self._flo.write(self._write_field('created_timestamp', tmp_data))
+        self._flo.write(self._newline)
+        self._flo.write(self._write_field('programid', self.program_id))
+        self._flo.write(self._newline)
+        if self.program_version:
+            self._flo.write(self._write_field('programversion', self.program_version))
+            self._flo.write(self._newline)
+        self._flo.write(self._write_field('eoh', None))
+        self._flo.write(self._newline)
+        self._head_writed = True
+
+    def add_qso(self, **kw):
+        if not self._head_writed:
+            self.write_head()
+
+        if not self._compact:
+            self._flo.write(self._newline)
+
+        if 'datetime_on' in kw:
+            tmp = kw['datetime_on']
+            kw['qso_date'] = tmp.date()
+            kw['time_on'] = tmp.time()
+            del kw['datetime_on']
+        if 'datetime_off' in kw:
+            tmp = kw['datetime_off']
+            t_date = tmp.date()
+            if t_date != kw['qso_date']:
+                kw['qso_date_off'] = t_date
+            elif 'qso_date_off' in kw:
+                del kw['qso_date_off']
+            kw['time_off'] = tmp.time()
+            del kw['datetime_off']
+
+        def writefield(field, data):
+            if data == None:
+                return
+            l_field = field.lower()
+            if l_field in adif_field:
+                if adif_field[l_field] == 'D':
+                    tmp = data.strftime('%Y%m%d')
+                elif adif_field[l_field] == 'T':
+                    tmp = data.strftime('%H%M%S')
+                else:
+                    tmp = str(data)
+                self._flo.write(self._write_field(l_field, tmp))
+                if not self._compact:
+                    self._flo.write(self._newline)
+            elif l_field.startswith('app_'):
+                tmp = str(data)
+                self._flo.write(self._write_field(l_field, tmp))
+                if not self._compact:
+                    self._flo.write(self._newline)
+            else:
+                raise WriteError('unknown field: \'%s\'' % l_field)
+
+        if 'qso_date' in kw and kw['qso_date']:
+            writefield('qso_date', kw['qso_date'])
+            del kw['qso_date']
+        else:
+            raise WriteError('missing field: \'qso_date\'')
+
+        if 'time_on' in kw and kw['time_on']:
+            writefield('time_on', kw['time_on'])
+            del kw['time_on']
+        else:
+            raise WriteError('missing field: \'time_on\'')
+
+        if 'call' in kw and kw['call']:
+            writefield('call', kw['call'])
+            del kw['call']
+        else:
+            raise WriteError('missing field: \'call\'')
+
+        if 'band' in kw and kw['band']:
+            writefield('band', kw['band'])
+            del kw['band']
+        else:
+            raise WriteError('missing field: \'band\'')
+
+        if 'mode' in kw and kw['mode']:
+            writefield('mode', kw['mode'])
+            del kw['mode']
+        else:
+            raise WriteError('missing field: \'mode\'')
+
+        for field in kw:
+            writefield(field, kw[field])
+        self._flo.write(self._write_field('eor', None))
+        self._flo.write(self._newline)
+
+    def close(self):
+        if not self._head_writed:
+            self.write_head()
+        self._flo.close()
+
+    def _write_field(self, name, data, type=None):
+        name = name.lower()
+        if data:
+            data = str(data).replace('\r\n', '\n').replace('\n', '\r\n')
+            dlen = len(data)
+            if type:
+                raw = '<%s:%d:%s>%s' % (name, dlen, type, data)
+            else:
+                raw = '<%s:%d>%s' % (name, dlen, data)
+        else:
+            raw = '<%s>' % name
+
+        return unidecode(raw).encode('ascii')
