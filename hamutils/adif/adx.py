@@ -39,8 +39,6 @@ class ADXReader:
                             field = ('%s_%s_%s' % (field, progid, fieldname)).lower()
                         res[field] = convert_field(field, data, None)
 
-                    print("'%s' = %s" % (field, data))
-
             if 'qso_date' not in res:
                 raise ParseError(0, 'missing qso_date field')
             if 'time_on' not in res:
@@ -175,6 +173,8 @@ class ADXWriter:
                 tmp_data = data.strftime('%Y%m%d')
             elif adif_field[l_field] == 'T':
                 tmp_data = data.strftime('%H%M%S')
+            elif adif_field[l_field] == 'B':
+                tmp_data = 'Y' if data else 'N'
             else:
                 tmp_data = str(data)
 

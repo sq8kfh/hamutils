@@ -9,11 +9,11 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='hamutils',
-    version='0.1.1',
+    version='0.2.0',
     description='Amateur radio utils library',
     long_description=long_description,
     url='https://github.com/sq8kfh/hamutils',
-    download_url = 'https://github.com/sq8kfh/hamutils/tarball/v0.1.1',
+    download_url = 'https://github.com/sq8kfh/hamutils/tarball/v0.2.0',
     author='SQ8KFH',
     author_email='sq8kfh@gmail.com',
     license='MIT',
@@ -26,7 +26,7 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.4',
     ],
-    keywords=['ham', 'qrz', 'space weather'],
+    keywords=['ham', 'qrz', 'space weather', 'adif', 'cabrillo'],
     packages=find_packages(),
     python_requires='>=3.4',
     install_requires=[

@@ -146,7 +146,7 @@ class ADIWriter:
         self._head_writed = False
         self._newline = '\r\n'.encode('ascii')
 
-    def write_head(self):
+    def write_header(self):
         self._flo.write(self._write_field('adif_ver', self.adif_ver))
         self._flo.write(self._newline)
         tmp_data = datetime.datetime.utcnow().strftime('%Y%m%d %H%M%S')
@@ -163,7 +163,7 @@ class ADIWriter:
 
     def add_qso(self, **kw):
         if not self._head_writed:
-            self.write_head()
+            self.write_header()
 
         if not self._compact:
             self._flo.write(self._newline)
@@ -192,6 +192,8 @@ class ADIWriter:
                     tmp_data = data.strftime('%Y%m%d')
                 elif adif_field[l_field] == 'T':
                     tmp_data = data.strftime('%H%M%S')
+                elif adif_field[l_field] == 'B':
+                    tmp_data = 'Y' if data else 'N'
                 else:
                     tmp_data = str(data)
                 self._flo.write(self._write_field(l_field, tmp_data))
@@ -242,7 +244,7 @@ class ADIWriter:
 
     def close(self):
         if not self._head_writed:
-            self.write_head()
+            self.write_header()
         self._flo.close()
 
     @staticmethod
@@ -250,6 +252,7 @@ class ADIWriter:
         name = name.lower()
         if data:
             data = str(data).replace('\r\n', '\n').replace('\n', '\r\n')
+            data = unidecode(data)
             dlen = len(data)
             if data_type:
                 raw = '<%s:%d:%s>%s' % (name, dlen, data_type, data)
