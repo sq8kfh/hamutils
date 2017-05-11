@@ -26,7 +26,7 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.4',
     ],
-    keywords=['ham', 'qrz', 'space weather', 'adif', 'cabrillo'],
+    keywords='ham qrz space weather adif adi adx cabrillo',
     packages=find_packages(),
     python_requires='>=3.4',
     install_requires=[
