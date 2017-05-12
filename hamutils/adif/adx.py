@@ -178,7 +178,7 @@ class ADXWriter:
             else:
                 tmp_data = str(data)
 
-            if l_field in adif_rev_utf_field:
+            if l_field in adif_rev_utf_field and unidecode(tmp_data) != tmp_data:
                 record_node.appendChild(self._create_node(adif_rev_utf_field[l_field], tmp_data))
             record_node.appendChild(self._create_node(l_field, unidecode(tmp_data)))
         elif l_field.startswith('app_'):
