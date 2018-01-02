@@ -176,12 +176,72 @@ adif_utf_field = {
 
 adif_rev_utf_field = {v: k for k,v in adif_utf_field.items()}
 
+def convert_freq_to_band(freq):
+    if 0.136 <= freq <= 0.137:
+        return '2190m'
+    elif 0.472 <= freq <= 0.479:
+        return '630m'
+    elif 0.501 <= freq <= 0.504:
+        return '560m'
+    elif 1.8 <= freq <= 2.0:
+        return '160m'
+    elif 3.5 <= freq <= 4.0:
+        return '80m'
+    elif 5.06 <= freq <= 5.45:
+        return '60m'
+    elif 7.0 <= freq <= 7.3:
+        return '40m'
+    elif 10.1 <= freq <= 10.15:
+        return '30m'
+    elif 14.0 <= freq <= 14.35:
+        return '20m'
+    elif 18.068 <= freq <= 18.168:
+        return '17m'
+    elif 21.0 <= freq <= 21.45:
+        return '15m'
+    elif 24.89 <= freq <= 24.99:
+        return '12m'
+    elif 28.0 <= freq <= 29.7:
+        return '10m'
+    elif 70 <= freq <= 71:
+        return '4m'
+    elif 144 <= freq <= 148:
+        return '2m'
+    elif 222 <= freq <= 225:
+        return '1.25m'
+    elif 420 <= freq <= 450:
+        return '70cm'
+    elif 902 <= freq <= 928:
+        return '33cm'
+    elif 1240 <= freq <= 1300:
+        return '23cm'
+    elif 2300 <= freq <= 2450:
+        return '13cm'
+    elif 3300 <= freq <= 3500:
+        return '9cm'
+    elif 5650 <= freq <= 5925:
+        return '6cm'
+    elif 10000 <= freq <= 10500:
+        return '3cm'
+    elif 24000 <= freq <= 24250:
+        return '1.25cm'
+    elif 47000 <= freq <= 47200:
+        return '6mm'
+    elif 75500 <= freq <= 81000:
+        return '4mm'
+    elif 119980 <= freq <= 120020:
+        return '2.5mm'
+    elif 142000 <= freq <= 149000:
+        return '2mm'
+    elif 241000 <= freq <= 250000:
+        return '1mm'
+    return None
 
 def convert_field_date(date_type, data):
     if date_type == 'B':
         return bool(data)
     elif date_type == 'N':
-        return float(data)
+        return float(data.replace(',', '.'))
     elif date_type == 'D':
         return datetime.date(int(data[0:4]), int(data[4:6]), int(data[6:8]))
     elif date_type == 'T':

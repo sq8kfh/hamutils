@@ -1,5 +1,5 @@
 import datetime
-from .common import ParseError, WriteError, adif_field, convert_field
+from .common import ParseError, WriteError, adif_field, convert_field, convert_freq_to_band
 from unidecode import unidecode
 
 
@@ -39,7 +39,14 @@ class ADIReader:
         if 'call' not in res:
             raise ParseError(self._line_num, 'missing call field')
         if 'band' not in res:
-            raise ParseError(self._line_num, 'missing band field')
+            if 'freq' in res:
+                tmpband = convert_freq_to_band(res['freq'])
+                if tmpband:
+                    res['band'] = convert_freq_to_band(res['freq'])
+                else:
+                    raise ParseError(self._line_num, 'error in freq to band conversion')
+            else:
+                raise ParseError(self._line_num, 'missing band field')
         if 'mode' not in res:
             raise ParseError(self._line_num, 'missing mode field')
 
