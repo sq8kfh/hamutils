@@ -24,6 +24,8 @@ class ADIReader:
             tmp = self._readfield()
         except ParseErrorIncData:
             raise StopIteration
+        if tmp[0] == 'app_lotw_eof':
+            raise StopIteration
         res = {}
         while tmp[0] != 'eor':
             try:
