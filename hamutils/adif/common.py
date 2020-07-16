@@ -60,6 +60,8 @@ adif_field = {
     'max_bursts': 'N',
     'mode': 'E',
     'ms_shower': 'S',
+    'my_antenna': 'S',
+    'my_antenna_intl': 'I',
     'my_city': 'S',
     'my_city_intl': 'I',
     'my_cnty': 'E',
@@ -146,8 +148,8 @@ adif_field = {
     'time_off': 'T',
     'time_on': 'T',
     'tx_pwr': 'N',
-    'usaca_counties': 'S',
     'uksmg': 'N',
+    'usaca_counties': 'S',
     've_prov': 'S',
     'vucc_grids': 'S',
     'web': 'S'
@@ -157,6 +159,7 @@ adif_utf_field = {
     'address_intl': 'address',
     'comment_intl': 'comment',
     'country_intl': 'country',
+    'my_antenna_intl': 'my_antenna',
     'my_city_intl': 'my_city',
     'my_country_intl': 'my_country',
     'my_name_intl': 'my_name',
@@ -174,10 +177,11 @@ adif_utf_field = {
     'sig_info_intl': 'sig_info'
 }
 
-adif_rev_utf_field = {v: k for k,v in adif_utf_field.items()}
+adif_rev_utf_field = {v: k for k, v in adif_utf_field.items()}
+
 
 def convert_freq_to_band(freq):
-    if 0.136 <= freq <= 0.137:
+    if 0.1357 <= freq <= 0.1378:
         return '2190m'
     elif 0.472 <= freq <= 0.479:
         return '630m'
@@ -203,6 +207,8 @@ def convert_freq_to_band(freq):
         return '12m'
     elif 28.0 <= freq <= 29.7:
         return '10m'
+    elif 50 <= freq <= 54:
+        return '6m'
     elif 70 <= freq <= 71:
         return '4m'
     elif 144 <= freq <= 148:
@@ -236,6 +242,7 @@ def convert_freq_to_band(freq):
     elif 241000 <= freq <= 250000:
         return '1mm'
     return None
+
 
 def convert_field_date(date_type, data):
     if date_type == 'B':
