@@ -268,6 +268,6 @@ class ADIWriter:
             else:
                 raw = '<%s:%d>%s' % (name, dlen, data)
         else:
-            raw = '<%s>' % name
+            raw = '<%s:0>' % name
 
         return unidecode(raw).encode('ascii')
