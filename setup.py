@@ -9,11 +9,11 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='hamutils',
-    version='0.2.0',
+    version='0.2.1',
     description='Amateur radio utils library',
     long_description=long_description,
     url='https://github.com/sq8kfh/hamutils',
-    download_url = 'https://github.com/sq8kfh/hamutils/tarball/v0.2.0',
+    download_url='https://github.com/sq8kfh/hamutils/tarball/v0.2.1',
     author='SQ8KFH',
     author_email='sq8kfh@gmail.com',
     license='MIT',
