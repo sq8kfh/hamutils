@@ -267,6 +267,8 @@ class ADIWriter:
                 raw = '<%s:%d:%s>%s' % (name, dlen, data_type, data)
             else:
                 raw = '<%s:%d>%s' % (name, dlen, data)
+        elif name in {'eor','eoh'}:
+            raw = '<%s>' % name
         else:
             raw = '<%s:0>' % name
 
